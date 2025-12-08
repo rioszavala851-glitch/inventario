@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --color-dark-bg: #1a1a1a;
+  --color-dark-surface: #2a2a2a;
+  --color-dark-text: #e5e5e5;
+
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+}
+
+@layer base {
+  body {
+    /* Modo Claro por defecto: Fondo gris muy claro y texto oscuro. */
+    @apply bg-gray-50 text-gray-900 transition-colors duration-200;
+    /* Elimina el margen global que a veces añade el navegador */
+    margin: 0;
+  }
+
+  /* Modo Oscuro: Se activa cuando el html tiene la clase 'dark' */
+  html.dark {
+    @apply bg-dark-bg text-dark-text;
+  }
+  
+  html.dark body {
+    @apply bg-dark-bg text-dark-text;
+  }
+}
+
+@layer utilities {
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+}
