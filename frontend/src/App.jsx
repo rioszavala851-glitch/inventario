@@ -8,6 +8,8 @@ import AreaCapture from './pages/AreaCapture';
 import History from './pages/History';
 import Pricing from './pages/Pricing';
 import Subscription from './pages/Subscription';
+import Categories from './pages/Categories';
+import Suppliers from './pages/Suppliers';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import Users from './pages/admin/Users';
 import Roles from './pages/admin/Roles';
@@ -44,6 +46,16 @@ function App() {
           }>
             <Route index element={<Dashboard />} />
             <Route path="subscription" element={<Subscription />} />
+            <Route path="categories" element={
+              <RoleRoute allowedRoles={['administrativo']}>
+                <Categories />
+              </RoleRoute>
+            } />
+            <Route path="suppliers" element={
+              <RoleRoute allowedRoles={['administrativo']}>
+                <Suppliers />
+              </RoleRoute>
+            } />
             {/* Add other routes here later */}
             <Route path="ingredientes" element={
               <RoleRoute allowedRoles={['administrativo']}>

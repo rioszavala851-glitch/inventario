@@ -4,8 +4,8 @@ import Sidebar from './Sidebar';
 import { ArrowLeft, Menu } from 'lucide-react';
 
 const Layout = () => {
-    // Initial state based on screen width
-    const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
+    // Initial state based on screen width - OPEN by default on desktop
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
     const navigate = useNavigate();
@@ -66,8 +66,8 @@ const Layout = () => {
             )}
 
             <main className={`flex-1 transition-all duration-300 p-4 md:p-8 pt-20 md:pt-8 ${isMobile
-                    ? 'ml-0 w-full'
-                    : isSidebarOpen ? 'ml-72' : 'ml-24'
+                ? 'ml-0 w-full'
+                : isSidebarOpen ? 'ml-72' : 'ml-24'
                 }`}>
                 <div className="max-w-[1200px] mx-auto">
                     {showBackButton && (

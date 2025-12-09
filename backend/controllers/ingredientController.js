@@ -18,8 +18,10 @@ const getIngredients = async (req, res) => {
         // Get total count for pagination
         const total = await Ingredient.countDocuments(query);
 
-        // Get paginated results
+        // Get paginated results with populated references
         const ingredients = await Ingredient.find(query)
+            .populate('category', 'name color icon')
+            .populate('supplier', 'name contactName')
             .limit(limit)
             .skip((page - 1) * limit)
             .sort({ name: 1 });
@@ -40,44 +42,106 @@ const getIngredients = async (req, res) => {
 // @route   POST /api/ingredients
 // @access  Private
 const addIngredient = async (req, res) => {
-    const { name, detail, unit, cost } = req.body;
+    const {
+        name, detail, sku, barcode, unit,
+        category, subcategory, brand, model, color, size, image,
+        purchasePrice, salePrice, supplier
+    } = req.body;
 
-    // Generate QR Content - typically just the ID or unique string
-    // We'll save the ingredient first to get the ID
-    const ingredient = new Ingredient({
-        name,
-        detail,
-        unit,
-        cost,
-        stocks: { almacen: 0, cocina: 0, ensalada: 0, isla: 0 }
-    });
+    try {
+        // Calculate margin if both prices provided
+        let margin = 0;
+        if (purchasePrice && salePrice) {
+            margin = ((salePrice - purchasePrice) / purchasePrice) * 100;
+        }
 
-    const createdIngredient = await ingredient.save();
+        const ingredient = new Ingredient({
+            name,
+            detail,
+            sku,
+            barcode,
+            unit,
+            category,
+            subcategory,
+            brand,
+            model,
+            color,
+            size,
+            image,
+            purchasePrice,
+            salePrice,
+            margin,
+            cost: purchasePrice, // Keep for backward compatibility
+            supplier,
+            stocks: { almacen: 0, cocina: 0, ensalada: 0, isla: 0 }
+        });
 
-    // Update QR code with the ID
-    createdIngredient.qrCode = createdIngredient._id.toString();
-    await createdIngredient.save();
+        const createdIngredient = await ingredient.save();
 
-    res.status(201).json(createdIngredient);
+        // Update QR code with the ID
+        createdIngredient.qrCode = createdIngredient._id.toString();
+        await createdIngredient.save();
+
+        // Populate references before sending response
+        await createdIngredient.populate('category', 'name color icon');
+        await createdIngredient.populate('supplier', 'name contactName');
+
+        res.status(201).json(createdIngredient);
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating ingredient', error: error.message });
+    }
 };
 
 // @desc    Update an ingredient
 // @route   PUT /api/ingredients/:id
 // @access  Private
 const updateIngredient = async (req, res) => {
-    const { name, detail, unit, cost } = req.body;
-    const ingredient = await Ingredient.findById(req.params.id);
+    const {
+        name, detail, sku, barcode, unit,
+        category, subcategory, brand, model, color, size, image,
+        purchasePrice, salePrice, supplier
+    } = req.body;
 
-    if (ingredient) {
-        ingredient.name = name || ingredient.name;
-        ingredient.detail = detail || ingredient.detail;
-        ingredient.unit = unit || ingredient.unit;
-        ingredient.cost = cost !== undefined ? cost : ingredient.cost;
+    try {
+        const ingredient = await Ingredient.findById(req.params.id);
 
-        const updatedIngredient = await ingredient.save();
-        res.json(updatedIngredient);
-    } else {
-        res.status(404).json({ message: 'Ingredient not found' });
+        if (ingredient) {
+            ingredient.name = name || ingredient.name;
+            ingredient.detail = detail !== undefined ? detail : ingredient.detail;
+            ingredient.sku = sku || ingredient.sku;
+            ingredient.barcode = barcode !== undefined ? barcode : ingredient.barcode;
+            ingredient.unit = unit || ingredient.unit;
+            ingredient.category = category !== undefined ? category : ingredient.category;
+            ingredient.subcategory = subcategory !== undefined ? subcategory : ingredient.subcategory;
+            ingredient.brand = brand !== undefined ? brand : ingredient.brand;
+            ingredient.model = model !== undefined ? model : ingredient.model;
+            ingredient.color = color !== undefined ? color : ingredient.color;
+            ingredient.size = size !== undefined ? size : ingredient.size;
+            ingredient.image = image !== undefined ? image : ingredient.image;
+            ingredient.purchasePrice = purchasePrice !== undefined ? purchasePrice : ingredient.purchasePrice;
+            ingredient.salePrice = salePrice !== undefined ? salePrice : ingredient.salePrice;
+            ingredient.supplier = supplier !== undefined ? supplier : ingredient.supplier;
+
+            // Recalculate margin
+            if (ingredient.purchasePrice && ingredient.salePrice) {
+                ingredient.margin = ((ingredient.salePrice - ingredient.purchasePrice) / ingredient.purchasePrice) * 100;
+            }
+
+            // Update cost for backward compatibility
+            ingredient.cost = ingredient.purchasePrice;
+
+            const updatedIngredient = await ingredient.save();
+
+            // Populate references
+            await updatedIngredient.populate('category', 'name color icon');
+            await updatedIngredient.populate('supplier', 'name contactName');
+
+            res.json(updatedIngredient);
+        } else {
+            res.status(404).json({ message: 'Ingredient not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating ingredient', error: error.message });
     }
 };
 

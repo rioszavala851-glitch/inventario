@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, Package, ChefHat, Salad, Utensils,
-    Archive, Clock, LogOut, Sun, Moon, ChevronRight, ChevronLeft, ShieldCheck, X
+    Archive, Clock, LogOut, Sun, Moon, ChevronRight, ChevronLeft, ShieldCheck, X,
+    Tag, Building2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
@@ -44,6 +45,8 @@ const Sidebar = ({ isOpen, toggle, isMobile, closeMobile }) => {
     const menuItems = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/', roles: ['administrativo', 'almacen', 'cocina', 'ensalada', 'isla'] },
         { name: 'Ingredientes', icon: Package, path: '/ingredientes', roles: ['administrativo'] },
+        { name: 'Categorías', icon: Tag, path: '/categories', roles: ['administrativo'] },
+        { name: 'Proveedores', icon: Building2, path: '/suppliers', roles: ['administrativo'] },
         { name: 'Almacén', icon: Archive, path: '/almacen', roles: ['administrativo', 'almacen'] },
         { name: 'Cocina', icon: ChefHat, path: '/cocina', roles: ['administrativo', 'cocina'] },
         { name: 'Ensalada', icon: Salad, path: '/ensalada', roles: ['administrativo', 'ensalada'] },
@@ -57,6 +60,15 @@ const Sidebar = ({ isOpen, toggle, isMobile, closeMobile }) => {
     const visibleMenuItems = isAdminUser
         ? menuItems
         : menuItems.filter(item => item.roles.includes(user?.role));
+
+    // DEBUG: Log to console
+    console.log('🔍 Sidebar Debug:', {
+        user,
+        userRole: user?.role,
+        isAdminUser,
+        visibleMenuItemsCount: visibleMenuItems.length,
+        visibleMenuItems: visibleMenuItems.map(i => i.name)
+    });
 
     // Determine sidebar classes based on mobile state
     const sidebarClasses = isMobile
