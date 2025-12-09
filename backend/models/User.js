@@ -19,6 +19,43 @@ const userSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Role',
         required: true,
+    },
+    // Subscription fields
+    trialStartDate: {
+        type: Date,
+        default: Date.now,
+    },
+    trialEndDate: {
+        type: Date,
+        default: function () {
+            return new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14 days from now
+        }
+    },
+    subscriptionStatus: {
+        type: String,
+        enum: ['trial', 'active', 'expired', 'cancelled'],
+        default: 'trial',
+    },
+    subscriptionPlan: {
+        type: String,
+        enum: ['monthly', 'annual', null],
+        default: null,
+    },
+    subscriptionStartDate: {
+        type: Date,
+        default: null,
+    },
+    subscriptionEndDate: {
+        type: Date,
+        default: null,
+    },
+    stripeCustomerId: {
+        type: String,
+        default: null,
+    },
+    stripeSubscriptionId: {
+        type: String,
+        default: null,
     }
 }, {
     timestamps: true,

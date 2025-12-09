@@ -30,12 +30,14 @@ const ingredientRoutes = require('./routes/ingredientRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
 const userRoutes = require('./routes/userRoutes');
 const roleRoutes = require('./routes/roleRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/subscription', subscriptionRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');

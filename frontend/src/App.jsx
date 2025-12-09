@@ -1,16 +1,21 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+// import { SubscriptionProvider } from './context/SubscriptionContext'; // DISABLED FOR DEMO
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Ingredients from './pages/Ingredients';
 import AreaCapture from './pages/AreaCapture';
 import History from './pages/History';
+import Pricing from './pages/Pricing';
+import Subscription from './pages/Subscription';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import Users from './pages/admin/Users';
 import Roles from './pages/admin/Roles';
 import Permissions from './pages/admin/Permissions';
 import Layout from './components/Layout';
 import RoleRoute from './components/RoleRoute';
+// import SubscriptionGuard from './components/SubscriptionGuard'; // DISABLED FOR DEMO
+// import TrialBanner from './components/TrialBanner'; // DISABLED FOR DEMO
 
 // Protect routes that require authentication
 const PrivateRoute = ({ children }) => {
@@ -20,18 +25,25 @@ const PrivateRoute = ({ children }) => {
 };
 
 function App() {
+
   return (
     <AuthProvider>
+      {/* <SubscriptionProvider> */} {/* DISABLED FOR DEMO */}
       <Router>
+        {/* <TrialBanner /> */} {/* DISABLED FOR DEMO */}
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/pricing" element={<Pricing />} />
 
           <Route path="/" element={
             <PrivateRoute>
+              {/* <SubscriptionGuard> */} {/* DISABLED FOR DEMO */}
               <Layout />
+              {/* </SubscriptionGuard> */} {/* DISABLED FOR DEMO */}
             </PrivateRoute>
           }>
             <Route index element={<Dashboard />} />
+            <Route path="subscription" element={<Subscription />} />
             {/* Add other routes here later */}
             <Route path="ingredientes" element={
               <RoleRoute allowedRoles={['administrativo']}>
@@ -88,6 +100,7 @@ function App() {
           </Route>
         </Routes>
       </Router>
+      {/* </SubscriptionProvider> */} {/* DISABLED FOR DEMO */}
     </AuthProvider>
   );
 }
