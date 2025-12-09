@@ -15,13 +15,23 @@ const roleSchema = new mongoose.Schema({
     permissions: [{
         type: String,
         enum: [
-            'view_dashboard',
-            'manage_ingredients',
-            'capture_inventory',
-            'view_history',
-            'manage_users',
-            'manage_roles',
-            'view_reports'
+            // Dashboard
+            'view_dashboard', 'view_analytics',
+            // Ingredientes
+            'manage_ingredients', 'create_ingredient', 'edit_ingredient', 'delete_ingredient',
+            'import_ingredients', 'export_ingredients', 'generate_qr_codes',
+            // Inventario
+            'capture_inventory', 'view_all_areas', 'view_own_area', 'edit_inventory',
+            'delete_inventory', 'transfer_inventory', 'adjust_inventory',
+            // Histórico
+            'view_history', 'create_snapshot', 'delete_snapshot', 'export_history', 'view_detailed_history',
+            // Reportes
+            'view_reports', 'generate_reports', 'export_reports', 'schedule_reports',
+            // Administración
+            'manage_users', 'manage_roles', 'manage_permissions', 'view_audit_log',
+            'manage_settings', 'backup_data',
+            // Notificaciones
+            'receive_alerts', 'manage_notifications', 'send_notifications'
         ]
     }],
     color: {

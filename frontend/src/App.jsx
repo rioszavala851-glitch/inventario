@@ -58,7 +58,11 @@ function App() {
                 <AreaCapture areaTitle="Isla" areaKey="isla" />
               </RoleRoute>
             } />
-            <Route path="history" element={<History />} />
+            <Route path="historico" element={
+              <RoleRoute allowedRoles={['administrativo']}>
+                <History />
+              </RoleRoute>
+            } />
 
             {/* Administrative Routes - Admin Only */}
             <Route path="admin" element={

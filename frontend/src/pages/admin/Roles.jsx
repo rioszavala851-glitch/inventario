@@ -17,13 +17,53 @@ const Roles = () => {
     });
 
     const availablePermissions = [
-        { value: 'view_dashboard', label: 'Ver Dashboard' },
-        { value: 'manage_ingredients', label: 'Gestionar Ingredientes' },
-        { value: 'capture_inventory', label: 'Capturar Inventario' },
-        { value: 'view_history', label: 'Ver Histórico' },
-        { value: 'manage_users', label: 'Gestionar Usuarios' },
-        { value: 'manage_roles', label: 'Gestionar Roles' },
-        { value: 'view_reports', label: 'Ver Reportes' }
+        // Dashboard
+        { value: 'view_dashboard', label: 'Ver Dashboard', category: 'Dashboard' },
+        { value: 'view_analytics', label: 'Ver Análisis', category: 'Dashboard' },
+
+        // Ingredientes
+        { value: 'manage_ingredients', label: 'Gestionar Ingredientes (Legacy)', category: 'Ingredientes' },
+        { value: 'create_ingredient', label: 'Crear Ingredientes', category: 'Ingredientes' },
+        { value: 'edit_ingredient', label: 'Editar Ingredientes', category: 'Ingredientes' },
+        { value: 'delete_ingredient', label: 'Eliminar Ingredientes', category: 'Ingredientes' },
+        { value: 'import_ingredients', label: 'Importar Ingredientes', category: 'Ingredientes' },
+        { value: 'export_ingredients', label: 'Exportar Ingredientes', category: 'Ingredientes' },
+        { value: 'generate_qr_codes', label: 'Generar Códigos QR', category: 'Ingredientes' },
+
+        // Inventario
+        { value: 'capture_inventory', label: 'Capturar Inventario', category: 'Inventario' },
+        { value: 'view_all_areas', label: 'Ver Todas las Áreas', category: 'Inventario' },
+        { value: 'view_own_area', label: 'Ver Solo Su Área', category: 'Inventario' },
+        { value: 'edit_inventory', label: 'Editar Inventario', category: 'Inventario' },
+        { value: 'delete_inventory', label: 'Eliminar Inventario', category: 'Inventario' },
+        { value: 'transfer_inventory', label: 'Transferir Inventario', category: 'Inventario' },
+        { value: 'adjust_inventory', label: 'Ajustar Inventario', category: 'Inventario' },
+
+        // Histórico
+        { value: 'view_history', label: 'Ver Histórico', category: 'Histórico' },
+        { value: 'create_snapshot', label: 'Crear Cierres', category: 'Histórico' },
+        { value: 'delete_snapshot', label: 'Eliminar Cierres', category: 'Histórico' },
+        { value: 'export_history', label: 'Exportar Histórico', category: 'Histórico' },
+        { value: 'view_detailed_history', label: 'Ver Detalles de Histórico', category: 'Histórico' },
+
+        // Reportes
+        { value: 'view_reports', label: 'Ver Reportes', category: 'Reportes' },
+        { value: 'generate_reports', label: 'Generar Reportes', category: 'Reportes' },
+        { value: 'export_reports', label: 'Exportar Reportes', category: 'Reportes' },
+        { value: 'schedule_reports', label: 'Programar Reportes', category: 'Reportes' },
+
+        // Administración
+        { value: 'manage_users', label: 'Gestionar Usuarios', category: 'Administración' },
+        { value: 'manage_roles', label: 'Gestionar Roles', category: 'Administración' },
+        { value: 'manage_permissions', label: 'Gestionar Permisos', category: 'Administración' },
+        { value: 'view_audit_log', label: 'Ver Registro de Auditoría', category: 'Administración' },
+        { value: 'manage_settings', label: 'Gestionar Configuración', category: 'Administración' },
+        { value: 'backup_data', label: 'Respaldar Datos', category: 'Administración' },
+
+        // Notificaciones
+        { value: 'receive_alerts', label: 'Recibir Alertas', category: 'Notificaciones' },
+        { value: 'manage_notifications', label: 'Gestionar Notificaciones', category: 'Notificaciones' },
+        { value: 'send_notifications', label: 'Enviar Notificaciones', category: 'Notificaciones' }
     ];
 
     const availableIcons = ['Box', 'Archive', 'ChefHat', 'Salad', 'Utensils', 'Shield', 'ShieldCheck', 'Users'];
@@ -279,22 +319,35 @@ const Roles = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Permisos</label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {availablePermissions.map((perm) => (
-                                            <label
-                                                key={perm.value}
-                                                className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.permissions.includes(perm.value)}
-                                                    onChange={() => togglePermission(perm.value)}
-                                                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                                                />
-                                                <span className="text-sm text-gray-700 dark:text-gray-300">{perm.label}</span>
-                                            </label>
-                                        ))}
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Permisos</label>
+                                    <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                                        {/* Group permissions by category */}
+                                        {['Dashboard', 'Ingredientes', 'Inventario', 'Histórico', 'Reportes', 'Administración', 'Notificaciones'].map((category) => {
+                                            const categoryPerms = availablePermissions.filter(p => p.category === category);
+                                            if (categoryPerms.length === 0) return null;
+
+                                            return (
+                                                <div key={category} className="border border-gray-200 dark:border-gray-700 rounded-xl p-3 bg-gray-50/50 dark:bg-gray-900/30">
+                                                    <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">{category}</h4>
+                                                    <div className="grid grid-cols-1 gap-2">
+                                                        {categoryPerms.map((perm) => (
+                                                            <label
+                                                                key={perm.value}
+                                                                className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={formData.permissions.includes(perm.value)}
+                                                                    onChange={() => togglePermission(perm.value)}
+                                                                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                                                />
+                                                                <span className="text-sm text-gray-700 dark:text-gray-300">{perm.label}</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
