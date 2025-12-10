@@ -13,14 +13,14 @@ const generateToken = (id) => {
 const authUser = async (req, res) => {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate('role', 'name');
 
     if (user && (await user.matchPassword(password))) {
         res.json({
             _id: user._id,
             name: user.name,
             email: user.email,
-            role: user.role,
+            role: user.role?.name || user.role, // Return role name if populated, otherwise role ID
             token: generateToken(user._id),
         });
     } else {
@@ -40,25 +40,31 @@ const registerUser = async (req, res) => {
         return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Validate role if provided
-    const allowedRoles = ['administrativo', 'almacen', 'cocina', 'ensalada', 'isla'];
-    if (role && !allowedRoles.includes(role)) {
-        return res.status(400).json({ message: 'Invalid role specified' });
+    // Find the role by name
+    const Role = require('../models/Role');
+    const roleName = role || 'almacen';
+    const roleDoc = await Role.findOne({ name: roleName });
+
+    if (!roleDoc) {
+        return res.status(400).json({ message: `Role '${roleName}' not found. Please ensure roles are seeded.` });
     }
 
     const user = await User.create({
         name,
         email,
         password,
-        role: role || 'almacen',
+        role: roleDoc._id, // Use the ObjectId of the role
     });
 
     if (user) {
+        // Populate role to get the name
+        await user.populate('role', 'name');
+
         res.status(201).json({
             _id: user._id,
             name: user.name,
             email: user.email,
-            role: user.role,
+            role: user.role?.name || 'unknown', // Return role name
             token: generateToken(user._id),
         });
     } else {

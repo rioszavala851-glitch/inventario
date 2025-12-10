@@ -33,6 +33,7 @@ const roleRoutes = require('./routes/roleRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const supplierRoutes = require('./routes/supplierRoutes');
+const fixRoutes = require('./routes/fixRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/ingredients', ingredientRoutes);
@@ -42,6 +43,7 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/suppliers', supplierRoutes);
+app.use('/api/fix', fixRoutes); // Temporary fix endpoint
 
 app.get('/', (req, res) => {
     res.send('API is running...');

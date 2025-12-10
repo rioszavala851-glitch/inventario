@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import API_BASE_URL from '../config/api';
 
 const Dashboard = () => {
-    const { user, isAdmin } = useAuth();
+    const { user, isAdmin, hasRole } = useAuth();
     const navigate = useNavigate();
 
     // Data State
@@ -36,12 +36,15 @@ const Dashboard = () => {
     // Determine user's area based on role
     const userArea = useMemo(() => {
         if (isAdmin()) return 'all';
-        const role = user?.role;
-        if (['almacen', 'cocina', 'ensalada', 'isla'].includes(role)) {
-            return role;
-        }
+
+        // Use hasRole to safely check roles (handles IDs vs names)
+        if (hasRole('almacen')) return 'almacen';
+        if (hasRole('cocina')) return 'cocina';
+        if (hasRole('ensalada')) return 'ensalada';
+        if (hasRole('isla')) return 'isla';
+
         return 'all';
-    }, [user, isAdmin]);
+    }, [user, isAdmin, hasRole]);
 
     // Constants
     const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e'];
@@ -65,12 +68,12 @@ const Dashboard = () => {
                 if (isAdmin()) {
                     const [statsRes, historyRes] = await Promise.all([
                         axios.get(`${API_BASE_URL}/api/inventory/dashboard`),
-                        axios.get(`${API_BASE_URL}/api/inventory/history`)
+                        axios.get(`${API_BASE_URL}/api/inventory/activity`)
                     ]);
                     console.log('📊 Admin Dashboard - Stats received:', statsRes.data);
-                    console.log('📊 Admin Dashboard - History received:', historyRes.data);
+                    console.log('📊 Admin Dashboard - Activity received:', historyRes.data);
                     setStats(statsRes.data);
-                    setHistory(historyRes.data);
+                    setHistory(historyRes.data); // We are using 'history' state to store 'activity' now.
                 } else {
                     // Role users get ingredients to compute their own stats
                     const { data } = await axios.get(`${API_BASE_URL}/api/ingredients?limit=1000`);
@@ -280,7 +283,7 @@ const Dashboard = () => {
                     <div className="h-px sm:h-auto sm:w-px bg-gray-200 dark:bg-gray-700 mx-1" />
 
                     <button
-                        onClick={() => navigate('/ingredients')}
+                        onClick={() => navigate('/ingredientes')}
                         className="flex items-center justify-center px-5 py-2.5 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition-all shadow-lg shadow-primary-500/30 whitespace-nowrap"
                     >
                         <Plus className="w-4 h-4 mr-1.5" />
@@ -304,6 +307,7 @@ const Dashboard = () => {
                     subtitle="Total catálogo"
                     icon={Package}
                     gradient="from-blue-500 to-indigo-500"
+                    onClick={() => navigate('/ingredientes')}
                 />
                 <StatCard
                     title="En Existencia"
@@ -380,7 +384,7 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Right Column: Recent History & Actions */}
+                {/* Right Column: Recent Activity & Actions */}
                 <div className="space-y-8">
                     {/* Recent History */}
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
@@ -398,20 +402,45 @@ const Dashboard = () => {
                             {filteredHistory.length > 0 ? (
                                 filteredHistory.map((item, idx) => (
                                     <div key={idx} className="relative pl-6 border-l-2 border-gray-100 dark:border-gray-700 pb-6 last:pb-0">
-                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-primary-100 dark:bg-primary-900 border-2 border-primary-500 ring-4 ring-white dark:ring-gray-800" />
+                                        <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 ring-4 ring-white dark:ring-gray-800 ${
+                                            // Conditional styling for different activity types if we had them, defaulting to generic update
+                                            item.action === 'SNAPSHOT'
+                                                ? 'bg-indigo-100 dark:bg-indigo-900 border-indigo-500'
+                                                : 'bg-emerald-100 dark:bg-emerald-900 border-emerald-500'
+                                            }`} />
                                         <div>
-                                            <p className="text-sm text-gray-500 mb-1">{new Date(item.createdAt).toLocaleDateString()}</p>
-                                            <p className="font-medium text-gray-800 dark:text-white">Snapshot Inventario</p>
-                                            <p className="text-sm font-semibold text-primary-600 mt-1">
-                                                {formatCurrency(item.totalInventoryValue)}
+                                            <p className="text-xs text-gray-400 mb-1">
+                                                {new Date(item.timestamp || item.createdAt).toLocaleDateString()} • {new Date(item.timestamp || item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </p>
+                                            <p className="font-medium text-gray-800 dark:text-white truncate pr-2">
+                                                {item.description || "Actualización de Inventario"}
+                                            </p>
+
+                                            {/* Detail line */}
+                                            {item.details ? (
+                                                <p className="text-xs font-semibold text-gray-500 mt-1">
+                                                    {item.details.area ? `${item.details.area} • ` : ''}
+                                                    {item.details.itemCount} items modificados
+                                                </p>
+                                            ) : (
+                                                <p className="text-sm font-semibold text-primary-600 mt-1">
+                                                    {item.totalInventoryValue ? formatCurrency(item.totalInventoryValue) : 'Cambio registrado'}
+                                                </p>
+                                            )}
+
+                                            {/* User attribution if available */}
+                                            {item.user && (
+                                                <p className="text-xs text-gray-400 mt-1 italic">
+                                                    por {item.user.name || 'Admin'}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 ))
                             ) : (
                                 <div className="text-center py-10 text-gray-400">
                                     <Activity className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                                    <p>No hay actividad en este periodo</p>
+                                    <p>No hay actividad reciente</p>
                                 </div>
                             )}
                         </div>
@@ -423,8 +452,11 @@ const Dashboard = () => {
 };
 
 // Reusable Professional Stat Card
-const StatCard = ({ title, value, subtitle, icon: Icon, gradient }) => (
-    <div className="relative group overflow-hidden bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300">
+const StatCard = ({ title, value, subtitle, icon: Icon, gradient, onClick }) => (
+    <div
+        onClick={onClick}
+        className={`relative group overflow-hidden bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all duration-300 ${onClick ? 'cursor-pointer' : ''}`}
+    >
         <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-10 blur-2xl rounded-bl-full -mr-10 -mt-10 transition-opacity group-hover:opacity-20`} />
 
         <div className="relative z-10 flex flex-col h-full justify-between">

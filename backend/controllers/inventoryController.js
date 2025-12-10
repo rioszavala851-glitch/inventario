@@ -1,5 +1,6 @@
 const Ingredient = require('../models/Ingredient');
 const Inventory = require('../models/Inventory');
+const Activity = require('../models/Activity');
 
 // @desc    Update stock for a specific ingredient in an area
 // @route   PUT /api/inventory/update
@@ -57,6 +58,21 @@ const saveSnapshot = async (req, res) => {
         totalInventoryValue
     });
 
+    // Log Activity
+    try {
+        await Activity.create({
+            user: req.user?._id, // Assuming auth middleware populates user
+            action: 'SNAPSHOT',
+            description: 'Cierre de Inventario',
+            details: {
+                itemCount: items.length,
+                totalValue: totalInventoryValue
+            }
+        });
+    } catch (err) {
+        console.error('Error logging snapshot activity:', err);
+    }
+
     // Reset all area stocks to 0 after saving
     await Ingredient.updateMany({}, {
         $set: {
@@ -78,6 +94,21 @@ const getHistory = async (req, res) => {
     res.json(history);
 };
 
+// @desc    Get recent activity (Audit Log)
+// @route   GET /api/inventory/activity
+// @access  Private
+const getRecentActivity = async (req, res) => {
+    try {
+        const activity = await Activity.find({})
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .populate('user', 'name email role');
+        res.json(activity);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching activity' });
+    }
+};
+
 // @desc    Get Dashboard stats (Current state)
 // @route   GET /api/inventory/dashboard
 // @access  Private
@@ -93,7 +124,6 @@ const getDashboardStats = async (req, res) => {
         const totalQty = ing.stocks.almacen + ing.stocks.cocina + ing.stocks.ensalada + ing.stocks.isla;
         totalValue += (totalQty * ing.cost);
         if (totalQty > 0) {
-            console.log(`  ✓ ${ing.name}: ${totalQty} units (Almacen: ${ing.stocks.almacen}, Cocina: ${ing.stocks.cocina}, Ensalada: ${ing.stocks.ensalada}, Isla: ${ing.stocks.isla})`);
             totalItems++;
         }
     });
@@ -145,6 +175,23 @@ const bulkUpdateStock = async (req, res) => {
 
         if (operations.length > 0) {
             await Ingredient.bulkWrite(operations);
+
+            // Log Activity
+            try {
+                // Determine area from first update (assuming bulk update is per area)
+                const area = updates[0]?.area || 'General';
+                await Activity.create({
+                    user: req.user?._id,
+                    action: 'UPDATE',
+                    description: `Actualización de Inventario: ${area}`,
+                    details: {
+                        area: area,
+                        itemCount: updates.length
+                    }
+                });
+            } catch (err) {
+                console.error('Error logging update activity:', err);
+            }
         }
 
         res.json({ message: 'Bulk update successful' });
@@ -154,4 +201,4 @@ const bulkUpdateStock = async (req, res) => {
     }
 };
 
-module.exports = { updateStock, saveSnapshot, getHistory, getDashboardStats, bulkUpdateStock };
+module.exports = { updateStock, saveSnapshot, getHistory, getDashboardStats, bulkUpdateStock, getRecentActivity };

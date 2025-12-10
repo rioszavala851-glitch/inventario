@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, MoreVertical, Trash2, Edit2, User, X, Check, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../../config/api';
 
 const Users = () => {
+    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'almacen' });
@@ -16,9 +18,20 @@ const Users = () => {
     const fetchUsers = async () => {
         try {
             const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+
+            console.log('🔐 User Info from localStorage:', userInfo ? 'Found' : 'NOT FOUND');
+            console.log('🔑 Token exists:', !!userInfo?.token);
+
+            if (!userInfo?.token) {
+                console.error('❌ No token found, redirecting to login');
+                localStorage.removeItem('userInfo');
+                navigate('/login');
+                return;
+            }
+
             const config = {
                 headers: {
-                    Authorization: `Bearer ${userInfo?.token}`
+                    Authorization: `Bearer ${userInfo.token}`
                 }
             };
             const { data } = await axios.get(`${API_BASE_URL}/api/users`, config);
@@ -26,6 +39,13 @@ const Users = () => {
             setLoading(false);
         } catch (error) {
             console.error('Error fetching users:', error);
+            // Handle authentication errors
+            if (error.response?.status === 401) {
+                console.error('❌ Authentication failed, clearing session and redirecting to login');
+                localStorage.removeItem('userInfo');
+                navigate('/login');
+                return;
+            }
             setLoading(false);
         }
     };
@@ -34,9 +54,17 @@ const Users = () => {
         e.preventDefault();
         try {
             const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+
+            if (!userInfo?.token) {
+                alert('Sesión expirada. Por favor inicia sesión de nuevo.');
+                localStorage.removeItem('userInfo');
+                navigate('/login');
+                return;
+            }
+
             const config = {
                 headers: {
-                    Authorization: `Bearer ${userInfo?.token}`
+                    Authorization: `Bearer ${userInfo.token}`
                 }
             };
             await axios.post(`${API_BASE_URL}/api/users`, newUser, config);
@@ -45,6 +73,16 @@ const Users = () => {
             fetchUsers();
             alert('Usuario creado exitosamente');
         } catch (error) {
+            console.error('Error creating user:', error);
+
+            // Handle authentication errors
+            if (error.response?.status === 401) {
+                alert('Sesión expirada. Por favor inicia sesión de nuevo.');
+                localStorage.removeItem('userInfo');
+                navigate('/login');
+                return;
+            }
+
             alert(error.response?.data?.message || 'Error creating user');
         }
     };
@@ -53,15 +91,33 @@ const Users = () => {
         if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
             try {
                 const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+
+                if (!userInfo?.token) {
+                    alert('Sesión expirada. Por favor inicia sesión de nuevo.');
+                    localStorage.removeItem('userInfo');
+                    navigate('/login');
+                    return;
+                }
+
                 const config = {
                     headers: {
-                        Authorization: `Bearer ${userInfo?.token}`
+                        Authorization: `Bearer ${userInfo.token}`
                     }
                 };
                 await axios.delete(`${API_BASE_URL}/api/users/${id}`, config);
                 fetchUsers();
             } catch (error) {
                 console.error('Error deleting user:', error);
+
+                // Handle authentication errors
+                if (error.response?.status === 401) {
+                    alert('Sesión expirada. Por favor inicia sesión de nuevo.');
+                    localStorage.removeItem('userInfo');
+                    navigate('/login');
+                    return;
+                }
+
+                alert(error.response?.data?.message || 'Error eliminando usuario');
             }
         }
     };
@@ -117,23 +173,31 @@ const Users = () => {
                                                 </div>
                                             </td>
                                             <td className="px-8 py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <Shield className="w-4 h-4 text-gray-400" />
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize border ${user.role === 'administrativo'
-                                                        ? 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800'
-                                                        : user.role === 'almacen'
-                                                            ? 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'
-                                                            : user.role === 'cocina'
-                                                                ? 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800'
-                                                                : user.role === 'ensalada'
-                                                                    ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800'
-                                                                    : user.role === 'isla'
-                                                                        ? 'bg-teal-50 text-teal-700 border-teal-100 dark:bg-teal-900/20 dark:text-teal-300 dark:border-teal-800'
-                                                                        : 'bg-gray-50 text-gray-700 border-gray-100 dark:bg-gray-900/20 dark:text-gray-300 dark:border-gray-800'
-                                                        }`}>
-                                                        {user.role}
-                                                    </span>
-                                                </div>
+                                                {(() => {
+                                                    // Handle role as either string or populated object
+                                                    const roleName = typeof user.role === 'object' && user.role !== null
+                                                        ? user.role.name
+                                                        : user.role;
+                                                    return (
+                                                        <div className="flex items-center gap-2">
+                                                            <Shield className="w-4 h-4 text-gray-400" />
+                                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize border ${roleName === 'administrativo'
+                                                                ? 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800'
+                                                                : roleName === 'almacen'
+                                                                    ? 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800'
+                                                                    : roleName === 'cocina'
+                                                                        ? 'bg-orange-50 text-orange-700 border-orange-100 dark:bg-orange-900/20 dark:text-orange-300 dark:border-orange-800'
+                                                                        : roleName === 'ensalada'
+                                                                            ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800'
+                                                                            : roleName === 'isla'
+                                                                                ? 'bg-teal-50 text-teal-700 border-teal-100 dark:bg-teal-900/20 dark:text-teal-300 dark:border-teal-800'
+                                                                                : 'bg-gray-50 text-gray-700 border-gray-100 dark:bg-gray-900/20 dark:text-gray-300 dark:border-gray-800'
+                                                                }`}>
+                                                                {roleName}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </td>
                                             <td className="px-8 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

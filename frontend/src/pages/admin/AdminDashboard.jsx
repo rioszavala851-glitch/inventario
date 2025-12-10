@@ -44,8 +44,13 @@ const AdminDashboard = () => {
             };
 
             data.forEach(user => {
-                if (breakdown.hasOwnProperty(user.role)) {
-                    breakdown[user.role]++;
+                // Handle role as either string or populated object
+                const roleName = typeof user.role === 'object' && user.role !== null
+                    ? user.role.name
+                    : user.role;
+
+                if (roleName && breakdown.hasOwnProperty(roleName)) {
+                    breakdown[roleName]++;
                 }
             });
 

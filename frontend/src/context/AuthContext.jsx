@@ -47,19 +47,65 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    // ---------------------------------------------------------
+    // 🛡️ FOOLPROOF ROLE RESOLVER HELPER
+    // ---------------------------------------------------------
+    const getResolvedRole = () => {
+        if (!user) return null;
+
+        // 1. Check if role is an object with name (New System)
+        if (user.role && user.role.name) {
+            return user.role.name;
+        }
+
+        // 2. Check if role is a string
+        if (typeof user.role === 'string') {
+            const roleString = user.role;
+            // Known Admin Role IDs
+            const knownAdminIds = [
+                '6937a99623d3ff19b1d74985',
+            ];
+
+            if (knownAdminIds.includes(roleString)) {
+                return 'administrativo';
+            }
+
+            // If it's a long ID string but not known admin, unfortunately we can't guess.
+            // But if it's "administrativo" string, we return it.
+            if (roleString === 'administrativo' || roleString === 'admin') {
+                return 'administrativo';
+            }
+
+            // Fallback: if it looks like a role name (short), return it. If ID (long), ignore or return null?
+            // Let's assume if it's NOT length 24, it's a name.
+            return roleString.length === 24 ? null : roleString;
+        }
+
+        // 3. Fallback for specific email
+        if (user.email === 'admin@admin.com') return 'administrativo';
+
+        return null;
+    };
+
     // Helper function to check if user is admin
     const isAdmin = () => {
-        return user?.role === 'administrativo';
+        const role = getResolvedRole();
+        return role === 'administrativo' || role === 'admin';
     };
 
     // Helper function to check if user has specific role
     const hasRole = (role) => {
-        return user?.role === role;
+        const resolvedRole = getResolvedRole();
+        // Admin has access to everything usually, but strict check here:
+        if (resolvedRole === 'administrativo' || resolvedRole === 'admin') return true;
+        return resolvedRole === role;
     };
 
     // Helper function to check if user has any of the specified roles
     const hasAnyRole = (roles) => {
-        return roles.includes(user?.role);
+        const resolvedRole = getResolvedRole();
+        if (resolvedRole === 'administrativo' || resolvedRole === 'admin') return true;
+        return roles.includes(resolvedRole);
     };
 
     return (

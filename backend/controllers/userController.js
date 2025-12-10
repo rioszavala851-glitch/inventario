@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs');
 // @access  Private/Admin
 const getUsers = async (req, res) => {
     try {
-        const users = await User.find({}).select('-password');
+        const users = await User.find({}).select('-password').populate('role', 'name');
         res.json(users);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching users' });
@@ -25,10 +25,13 @@ const createUser = async (req, res) => {
             return res.status(400).json({ message: 'Por favor completa todos los campos requeridos' });
         }
 
-        // Validate role
-        const allowedRoles = ['administrativo', 'almacen', 'cocina', 'ensalada', 'isla'];
-        if (role && !allowedRoles.includes(role)) {
-            return res.status(400).json({ message: 'Rol inválido. Roles permitidos: administrativo, almacen, cocina, ensalada, isla' });
+        // Find the role by name
+        const Role = require('../models/Role');
+        const roleName = role || 'almacen';
+        const roleDoc = await Role.findOne({ name: roleName });
+
+        if (!roleDoc) {
+            return res.status(400).json({ message: `Rol '${roleName}' no encontrado. Asegúrate de que los roles estén inicializados.` });
         }
 
         const userExists = await User.findOne({ email });
@@ -42,15 +45,18 @@ const createUser = async (req, res) => {
             name,
             email,
             password,
-            role: role || 'almacen'
+            role: roleDoc._id // Use the ObjectId of the role
         });
 
         if (user) {
+            // Populate role to return the name
+            await user.populate('role', 'name');
+
             res.status(201).json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role?.name || 'unknown'
             });
         } else {
             res.status(400).json({ message: 'Datos de usuario inválidos' });
