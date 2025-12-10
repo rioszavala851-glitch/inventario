@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Users, ShieldCheck, ArrowRight, UserPlus, Shield } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import API_BASE_URL from '../../config/api';
 
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [stats, setStats] = useState({
         totalUsers: 0,
@@ -26,9 +27,18 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
         try {
             const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+
+            // Check if we have a valid token
+            if (!userInfo?.token) {
+                console.error('No token found, redirecting to login');
+                localStorage.removeItem('userInfo');
+                navigate('/login');
+                return;
+            }
+
             const config = {
                 headers: {
-                    Authorization: `Bearer ${userInfo?.token}`
+                    Authorization: `Bearer ${userInfo.token}`
                 }
             };
 
@@ -61,6 +71,15 @@ const AdminDashboard = () => {
             setLoading(false);
         } catch (error) {
             console.error('Error fetching admin stats:', error);
+
+            // Handle authentication errors
+            if (error.response?.status === 401) {
+                console.error('Authentication failed, redirecting to login');
+                localStorage.removeItem('userInfo');
+                navigate('/login');
+                return;
+            }
+
             setLoading(false);
         }
     };

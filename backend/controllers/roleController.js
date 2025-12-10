@@ -54,7 +54,7 @@ const createRole = async (req, res) => {
 const updateRole = async (req, res) => {
     try {
         const { id } = req.params;
-        const { displayName, permissions, color, icon } = req.body;
+        const { name, displayName, permissions, color, icon } = req.body;
 
         const role = await Role.findById(id);
 
@@ -62,12 +62,8 @@ const updateRole = async (req, res) => {
             return res.status(404).json({ message: 'Rol no encontrado' });
         }
 
-        // Prevent editing system role name
-        if (role.isSystem && req.body.name) {
-            return res.status(403).json({ message: 'No se puede cambiar el nombre de un rol del sistema' });
-        }
-
-        // Update fields
+        // Update fields - all roles are now fully editable
+        if (name) role.name = name.toLowerCase();
         if (displayName) role.displayName = displayName;
         if (permissions) role.permissions = permissions;
         if (color) role.color = color;
@@ -115,9 +111,77 @@ const deleteRole = async (req, res) => {
     }
 };
 
+// @desc    Grant all permissions to administrativo role
+// @route   POST /api/roles/grant-all-admin
+// @access  Private (Admin only)
+const grantAllPermissions = async (req, res) => {
+    try {
+        // All available permissions
+        const ALL_PERMISSIONS = [
+            // Dashboard
+            'view_dashboard', 'view_analytics',
+            // Ingredientes
+            'manage_ingredients', 'create_ingredient', 'edit_ingredient', 'delete_ingredient',
+            'import_ingredients', 'export_ingredients', 'generate_qr_codes',
+            // Inventario
+            'capture_inventory', 'view_all_areas', 'view_own_area', 'edit_inventory',
+            'delete_inventory', 'transfer_inventory', 'adjust_inventory',
+            // Histórico
+            'view_history', 'create_snapshot', 'delete_snapshot', 'export_history', 'view_detailed_history',
+            // Reportes
+            'view_reports', 'generate_reports', 'export_reports', 'schedule_reports',
+            // Administración
+            'manage_users', 'manage_roles', 'manage_permissions', 'view_audit_log',
+            'manage_settings', 'backup_data',
+            // Notificaciones
+            'receive_alerts', 'manage_notifications', 'send_notifications'
+        ];
+
+        // Find and update the administrativo role
+        const result = await Role.findOneAndUpdate(
+            { name: 'administrativo' },
+            {
+                $set: {
+                    permissions: ALL_PERMISSIONS,
+                    isSystem: true
+                }
+            },
+            { new: true }
+        );
+
+        if (result) {
+            res.json({
+                message: 'Permisos de administrador actualizados',
+                permissions: result.permissions.length,
+                role: result
+            });
+        } else {
+            // Create if doesn't exist
+            const newRole = await Role.create({
+                name: 'administrativo',
+                displayName: 'Administrador',
+                permissions: ALL_PERMISSIONS,
+                color: '#8b5cf6',
+                icon: 'ShieldCheck',
+                isSystem: true
+            });
+
+            res.status(201).json({
+                message: 'Rol de administrador creado con todos los permisos',
+                permissions: newRole.permissions.length,
+                role: newRole
+            });
+        }
+    } catch (error) {
+        console.error('Error granting permissions:', error);
+        res.status(500).json({ message: 'Error al otorgar permisos' });
+    }
+};
+
 module.exports = {
     getRoles,
     createRole,
     updateRole,
-    deleteRole
+    deleteRole,
+    grantAllPermissions
 };

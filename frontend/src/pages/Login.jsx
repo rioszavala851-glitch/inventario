@@ -35,15 +35,17 @@ const Login = () => {
                 <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 space-y-8">
 
                     {/* Header */}
-                    <div className="text-center space-y-2">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30 mb-4">
-                            <LayoutDashboard className="w-8 h-8 text-white" />
-                        </div>
+                    <div className="text-center space-y-4">
+                        <img
+                            src="/logo.png"
+                            alt="StockZavala"
+                            className="h-24 w-auto mx-auto object-contain"
+                        />
                         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                             Bienvenido
                         </h1>
                         <p className="text-gray-500 dark:text-gray-400 font-medium">
-                            Sistema de Inventario
+                            Sistema de Control de Inventario
                         </p>
                     </div>
 
@@ -92,7 +94,7 @@ const Login = () => {
                 </div>
 
                 <p className="text-center text-xs text-gray-400 mt-6 max-w-xs mx-auto">
-                    &copy; 2025 Inventario Pro. Todos los derechos reservados.
+                    &copy; 2025 StockZavala. Todos los derechos reservados.
                 </p>
             </div>
         </div>

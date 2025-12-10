@@ -47,7 +47,7 @@ const Layout = () => {
                 >
                     <Menu className="w-6 h-6" />
                 </button>
-                <span className="ml-3 font-bold text-lg text-gray-800 dark:text-white">Inventario</span>
+                <img src="/logo.png" alt="StockZavala" className="h-8 w-auto ml-3 object-contain" />
             </div>
 
             <Sidebar

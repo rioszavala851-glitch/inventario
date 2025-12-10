@@ -213,16 +213,13 @@ const Sidebar = ({ isOpen, toggle, isMobile, closeMobile }) => {
             <div className="h-full flex flex-col bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-3xl shadow-2xl overflow-hidden transition-all duration-300">
 
                 {/* Header */}
-                <div className={`p-8 pb-4 flex items-center justify-between transition-all`}>
+                <div className={`p-6 pb-4 flex items-center justify-between transition-all`}>
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-primary-500/30 flex-shrink-0">
-                            I
-                        </div>
-                        {(isOpen || isMobile) && (
-                            <h1 className="text-2xl font-extrabold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent whitespace-nowrap overflow-hidden">
-                                Inventario
-                            </h1>
-                        )}
+                        <img
+                            src="/logo.png"
+                            alt="StockZavala"
+                            className={`${isOpen || isMobile ? 'h-10' : 'h-8'} w-auto object-contain transition-all`}
+                        />
                     </div>
                     {/* Close button for mobile */}
                     {isMobile && (

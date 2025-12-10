@@ -50,16 +50,42 @@ const Ingredients = () => {
         const file = e.target.files[0];
         if (!file) return;
 
+        console.log('📁 Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+
         const formData = new FormData();
         formData.append('file', file);
 
         try {
-            await axios.post(`${API_BASE_URL}/api/ingredients/upload`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            const config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${userInfo?.token}`
+                }
+            };
+
+            const response = await axios.post(`${API_BASE_URL}/api/ingredients/upload`, formData, config);
+
+            console.log('✅ Upload successful:', response.data);
+
+            const count = response.data.length;
+            alert(`¡Éxito! Se importaron ${count} ingrediente(s) del archivo Excel.`);
+
             fetchIngredients();
+
+            // Reset the file input
+            e.target.value = '';
         } catch (error) {
-            console.error('Upload failed', error);
+            console.error('❌ Upload failed:', error);
+            console.error('Error response:', error.response?.data);
+
+            const errorMessage = error.response?.data?.message || error.message || 'Error desconocido';
+            const errorDetails = error.response?.data?.error || '';
+
+            alert(`Error al subir el archivo:\n${errorMessage}${errorDetails ? '\n\nDetalles: ' + errorDetails : ''}\n\nAsegúrate de que el Excel tenga las columnas: Name, Detail, Unit, Cost`);
+
+            // Reset the file input
+            e.target.value = '';
         }
     };
 
@@ -168,7 +194,15 @@ const Ingredients = () => {
                         Gestiona los productos base, costos y unidades de medida.
                     </p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 flex-wrap">
+                    <a
+                        href={`${API_BASE_URL}/api/ingredients/template`}
+                        download="plantilla_ingredientes.xlsx"
+                        className="flex items-center px-4 py-3 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/30 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all font-semibold shadow-sm"
+                    >
+                        <Download className="w-5 h-5 mr-2" />
+                        Descargar Plantilla
+                    </a>
                     <label className="flex items-center px-4 py-3 bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-900/30 rounded-xl cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/10 transition-all font-semibold shadow-sm">
                         <FileSpreadsheet className="w-5 h-5 mr-2" />
                         Importar Excel

@@ -277,8 +277,7 @@ const Roles = () => {
                                         <input
                                             type="text"
                                             required
-                                            disabled={editingRole?.isSystem}
-                                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all dark:text-white disabled:opacity-50"
+                                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all dark:text-white"
                                             placeholder="ej. gerente"
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value.toLowerCase() })}
