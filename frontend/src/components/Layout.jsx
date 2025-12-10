@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import PWAInstallPrompt from './PWAInstallPrompt';
 import { ArrowLeft, Menu } from 'lucide-react';
 
 const Layout = () => {
@@ -84,6 +85,9 @@ const Layout = () => {
                     <Outlet />
                 </div>
             </main>
+
+            {/* PWA Install Prompt */}
+            <PWAInstallPrompt />
         </div>
     );
 };
