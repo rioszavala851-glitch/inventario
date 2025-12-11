@@ -1,6 +1,5 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
 
 // Token expiration: Use environment variable or default to 7 days
 const TOKEN_EXPIRY = process.env.JWT_EXPIRY || '7d';
@@ -11,64 +10,24 @@ const generateToken = (id) => {
     });
 };
 
-// Validation rules for login
-const loginValidation = [
-    body('email')
-        .isEmail()
-        .withMessage('Por favor ingresa un correo electrónico válido')
-        .normalizeEmail()
-        .trim(),
-    body('password')
-        .notEmpty()
-        .withMessage('La contraseña es requerida')
-];
-
-// Validation rules for registration
-const registerValidation = [
-    body('name')
-        .trim()
-        .isLength({ min: 2, max: 50 })
-        .withMessage('El nombre debe tener entre 2 y 50 caracteres')
-        .escape(),
-    body('email')
-        .isEmail()
-        .withMessage('Por favor ingresa un correo electrónico válido')
-        .normalizeEmail()
-        .trim(),
-    body('password')
-        .isLength({ min: 6 })
-        .withMessage('La contraseña debe tener al menos 6 caracteres')
-        .matches(/\d/)
-        .withMessage('La contraseña debe contener al menos un número'),
-    body('role')
-        .optional()
-        .trim()
-        .escape()
-];
-
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
 // @access  Public
 const authUser = async (req, res) => {
     try {
-        // Check validation errors
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                message: 'Datos inválidos',
-                errors: errors.array()
-            });
-        }
-
         const { email, password } = req.body;
 
+        // Basic validation
+        if (!email || !password) {
+            return res.status(400).json({ message: 'Email y contraseña son requeridos' });
+        }
+
         // Find user and explicitly select password (it's usually excluded)
-        const user = await User.findOne({ email })
+        const user = await User.findOne({ email: email.toLowerCase() })
             .select('+password')
             .populate('role', 'name permissions');
 
         if (!user) {
-            // Use same message to prevent user enumeration
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
 
@@ -82,10 +41,6 @@ const authUser = async (req, res) => {
         if (!isMatch) {
             return res.status(401).json({ message: 'Credenciales inválidas' });
         }
-
-        // Update last login timestamp (if you have this field)
-        user.lastLogin = new Date();
-        await user.save({ validateBeforeSave: false });
 
         res.json({
             _id: user._id,
@@ -107,16 +62,16 @@ const authUser = async (req, res) => {
 // @access  Public (should be protected in production)
 const registerUser = async (req, res) => {
     try {
-        // Check validation errors
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                message: 'Datos inválidos',
-                errors: errors.array()
-            });
+        const { name, email, password, role } = req.body;
+
+        // Basic validation
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'Nombre, email y contraseña son requeridos' });
         }
 
-        const { name, email, password, role } = req.body;
+        if (password.length < 6) {
+            return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
+        }
 
         // Check if user exists
         const userExists = await User.findOne({ email: email.toLowerCase() });
@@ -199,7 +154,5 @@ const getMe = async (req, res) => {
 module.exports = {
     authUser,
     registerUser,
-    getMe,
-    loginValidation,
-    registerValidation
+    getMe
 };

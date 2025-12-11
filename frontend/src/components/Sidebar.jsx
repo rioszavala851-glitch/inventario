@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, Package, ChefHat, Salad, Utensils,
     Archive, Clock, LogOut, Sun, Moon, ChevronRight, ChevronLeft, ShieldCheck, X,
-    Tag, Building2
+    Tag, Building2, BarChart3, Bell
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
@@ -106,6 +106,8 @@ const Sidebar = ({ isOpen, toggle, isMobile, closeMobile }) => {
             ]
         },
         { name: 'Histórico', icon: Clock, path: '/historico', roles: ['administrativo'] },
+        { name: 'Reportes', icon: BarChart3, path: '/reportes', roles: ['administrativo'] },
+        { name: 'Notificaciones', icon: Bell, path: '/notificaciones', roles: ['administrativo'] },
         { name: 'Administrativo', icon: ShieldCheck, path: '/admin', roles: ['administrativo'] },
     ];
 

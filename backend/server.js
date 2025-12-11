@@ -4,8 +4,9 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
-const hpp = require('hpp');
+// NOTE: express-mongo-sanitize and hpp are incompatible with Express 5
+// const mongoSanitize = require('express-mongo-sanitize');
+// const hpp = require('hpp');
 
 dotenv.config();
 
@@ -26,9 +27,9 @@ app.use(helmet({
 // 2. Rate Limiting - Prevent brute force attacks
 const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 500, // Limit each IP to 500 requests per 15 minutes
     message: {
-        message: 'Demasiadas solicitudes desde esta IP. Por favor intenta de nuevo en 15 minutos.'
+        message: 'Demasiadas solicitudes desde esta IP. Por favor intenta de nuevo más tarde.'
     },
     standardHeaders: true,
     legacyHeaders: false,
@@ -72,11 +73,11 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 5. Data Sanitization against NoSQL injection
-app.use(mongoSanitize());
+// 5. Data Sanitization - DISABLED (incompatible with Express 5)
+// app.use(mongoSanitize());
 
-// 6. Prevent HTTP Parameter Pollution
-app.use(hpp());
+// 6. Prevent HTTP Parameter Pollution - DISABLED (incompatible with Express 5)
+// app.use(hpp());
 
 // 7. Remove X-Powered-By header
 app.disable('x-powered-by');
@@ -109,6 +110,11 @@ const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const supplierRoutes = require('./routes/supplierRoutes');
 const fixRoutes = require('./routes/fixRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const snapshotRoutes = require('./routes/snapshotRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const activityRoutes = require('./routes/activityRoutes');
+const backupRoutes = require('./routes/backupRoutes');
 
 // Apply stricter rate limiting to auth routes
 app.use('/api/auth', authLimiter, authRoutes);
@@ -118,6 +124,11 @@ app.use('/api/ingredients', ingredientRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/snapshots', snapshotRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/activity', activityRoutes);
+app.use('/api/backup', backupRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/suppliers', supplierRoutes);

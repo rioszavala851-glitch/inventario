@@ -3,15 +3,13 @@ const router = express.Router();
 const {
     authUser,
     registerUser,
-    getMe,
-    loginValidation,
-    registerValidation
+    getMe
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
-// Public routes with validation
-router.post('/login', loginValidation, authUser);
-router.post('/register', registerValidation, registerUser);
+// Public routes
+router.post('/login', authUser);
+router.post('/register', registerUser);
 
 // Protected routes
 router.get('/me', protect, getMe);

@@ -6,6 +6,9 @@ import Dashboard from './pages/Dashboard';
 import Ingredients from './pages/Ingredients';
 import AreaCapture from './pages/AreaCapture';
 import History from './pages/History';
+import Reports from './pages/Reports';
+import Profile from './pages/Profile';
+import Notifications from './pages/Notifications';
 import Pricing from './pages/Pricing';
 import Subscription from './pages/Subscription';
 import Categories from './pages/Categories';
@@ -14,6 +17,8 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import Users from './pages/admin/Users';
 import Roles from './pages/admin/Roles';
 import Permissions from './pages/admin/Permissions';
+import Backup from './pages/admin/Backup';
+import ActivityLog from './pages/admin/ActivityLog';
 import Layout from './components/Layout';
 import RoleRoute from './components/RoleRoute';
 // import SubscriptionGuard from './components/SubscriptionGuard'; // DISABLED FOR DEMO
@@ -87,6 +92,11 @@ function App() {
                 <History />
               </RoleRoute>
             } />
+            <Route path="reportes" element={
+              <RoleRoute allowedRoles={['administrativo']}>
+                <Reports />
+              </RoleRoute>
+            } />
 
             {/* Administrative Routes - Admin Only */}
             <Route path="admin" element={
@@ -107,6 +117,24 @@ function App() {
             <Route path="admin/permissions" element={
               <RoleRoute allowedRoles={['administrativo']}>
                 <Permissions />
+              </RoleRoute>
+            } />
+
+            {/* Profile and Notifications - All authenticated users */}
+            <Route path="perfil" element={<Profile />} />
+            <Route path="notificaciones" element={
+              <RoleRoute allowedRoles={['administrativo']}>
+                <Notifications />
+              </RoleRoute>
+            } />
+            <Route path="admin/backup" element={
+              <RoleRoute allowedRoles={['administrativo']}>
+                <Backup />
+              </RoleRoute>
+            } />
+            <Route path="admin/activity" element={
+              <RoleRoute allowedRoles={['administrativo']}>
+                <ActivityLog />
               </RoleRoute>
             } />
           </Route>

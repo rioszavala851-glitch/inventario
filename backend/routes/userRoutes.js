@@ -1,20 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const { getUsers, createUser, deleteUser } = require('../controllers/userController');
+const {
+    getUsers,
+    createUser,
+    deleteUser,
+    updateProfile,
+    changePassword,
+    updateUser
+} = require('../controllers/userController');
 const { protect, isAdmin } = require('../middleware/authMiddleware');
 
 console.log('✅ userRoutes.js loaded successfully');
 
-// Protect all user routes - require authentication and admin role
-router.use(protect);
-router.use(isAdmin);
+// Profile routes - require only authentication
+router.put('/profile', protect, updateProfile);
+router.put('/password', protect, changePassword);
 
-router.route('/')
-    .get(getUsers)
-    .post(createUser);
-
-router.route('/:id')
-    .delete(deleteUser);
+// Admin routes - require authentication AND admin role
+router.get('/', protect, isAdmin, getUsers);
+router.post('/', protect, isAdmin, createUser);
+router.put('/:id', protect, isAdmin, updateUser);
+router.delete('/:id', protect, isAdmin, deleteUser);
 
 console.log('✅ User routes registered');
 
