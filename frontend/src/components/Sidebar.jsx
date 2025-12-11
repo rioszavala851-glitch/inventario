@@ -1,4 +1,4 @@
-Papimport { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, Package, ChefHat, Salad, Utensils,
     Archive, Clock, LogOut, Sun, Moon, ChevronRight, ChevronLeft, ShieldCheck, X,
