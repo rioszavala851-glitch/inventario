@@ -15,7 +15,7 @@ services:
         value: production
       - key: PORT
         value: 5000
-      - key: MONGO_URI
+      - key: MONGODB_URI
         sync: false  # Set manually in Render dashboard
       - key: JWT_SECRET
         generateValue: true
@@ -30,7 +30,7 @@ services:
     rootDir: frontend
     envVars:
       - key: VITE_API_URL
-        value: https://inventario-backend.onrender.com
+        value: https://inventario-backend-ly91.onrender.com
     routes:
       - type: rewrite
         source: /*
