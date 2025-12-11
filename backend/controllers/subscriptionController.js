@@ -1,4 +1,8 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe only if the secret key is provided
+const stripe = process.env.STRIPE_SECRET_KEY
+    ? require('stripe')(process.env.STRIPE_SECRET_KEY)
+    : null;
+
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 
@@ -48,6 +52,11 @@ const getSubscriptionStatus = async (req, res) => {
  */
 const createCheckoutSession = async (req, res) => {
     try {
+        // Check if Stripe is configured
+        if (!stripe) {
+            return res.status(503).json({ message: 'Stripe no está configurado. Contacte al administrador.' });
+        }
+
         const { plan } = req.body; // 'monthly' or 'annual'
         const user = await User.findById(req.user._id);
 
